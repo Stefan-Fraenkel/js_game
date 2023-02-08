@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<script type="module">
+    import ElementManager from "./elementManager.js";
+
+    var b_counter1 = 1;
+    var mousePos;
+
+    var manager = new ElementManager();
+
+    manager.createElement("wall", 1, 10, 60, 100, 630);
+    manager.createElement("wall", 1, 10, 10, 700, 100);
+    manager.createElement("wall", 1, 10, 640, 700, 100);
+
+    manager.createElement("wall", 1, 420, 220, 290, 100);
+
+    manager.createElement("wall", 1, 420, 440, 290, 100);
+
+
+
+    manager.createElement("character", 1, 400, 400);
+    let character = manager.characters[0]; // so character is drawn above walls (order of instantiation)
+    console.log(character);
+    document.getElementById(character.id).style.left = 200 + "px";
+    document.getElementById(character.id).style.right = 200 + "px";
+
+    manager.createElement("enemy", 5);
+
+    // document.getElementById("text").innerHTML += this.horizontal + ' HIT ' + this.vertical;
+
+    setInterval(function mainLogic()
+    {
+        character_left = document.getElementById(character.id).getBoundingClientRect().left; //declaration here prevents update on every loop
+        character_width = document.getElementById(character.id).offsetWidth;
+        character_height = document.getElementById(character.id).offsetHeight;
+        character_top = document.getElementById(character.id).getBoundingClientRect().top;
+        if (manager.enemies.length == 0) {
+            manager.createElement("enemy", enemies, 3);
+            console.log(manager.enemies);
+        }
+        let passable = [true, true, true, true]; // [0] top, [1] bottom, [2] left, [3] right
+        manager.walls.forEach(function(wall) {
+            let pass = wall.passable(character);
+            let i = 0;
+            pass.forEach(function(p) {
+                if (p == false) {
+                    passable[i] = p;
+                }
+                i++;
+            })
+        })
+        character.move(passable[0], passable[1], passable[2], passable[3])
+        manager.enemies.forEach(function(enemy) {
+            if(enemy !== undefined) {
+                try {
+
+                }
+                catch (e) {
+
+                }
+                var move = enemy.move(document.getElementById(enemy.id).getBoundingClientRect(), getSize());
+                document.getElementById(enemy.id).style.left = move[0];
+                document.getElementById(enemy.id).style.top = move[1];
+            }
+        })
+    }, 10);
+
+    var mouseDown = false;
+
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("keydown", onKeyDown, false);
+    window.addEventListener("keyup", onKeyUp, false);
+    window.addEventListener("load", getSize);
+
+
+    setInterval(function hit(){
+        //this code runs every hundred of a second
+        manager.enemies.forEach(function(enemy) {
+            let i = 0;
+            let ids = [];
+            bullets.forEach(function(bullet) {
+                if (document.getElementById(bullet[0]).getBoundingClientRect().left <= enemy.coordinates.right && document.getElementById(bullet[0]).getBoundingClientRect().left >= enemy.coordinates.left)
+                {
+                    if (document.getElementById(bullet[0]).getBoundingClientRect().top <= enemy.coordinates.bottom && document.getElementById(bullet[0]).getBoundingClientRect().top >= enemy.coordinates.top)
+                    {
+                        if (enemy.hit(bullet) <= 0) {
+                            ids.push(enemy.id);
+                        }
+                        bullets.splice(i, 1);
+                    }
+                }
+                i++;
+            })
+            manager.deleteEnemy(ids);
+        })
+    }, 10);
+
+    function onKeyDown(event)
+    {
+        character.onKeyDown(event);
+    }
+
+    function onKeyUp(event)
+    {
+        character.onKeyUp(event);
+    }
+
+    var character_left;
+
+    var character_top;
+
+    var character_height;
+
+    var character_width;
+
+
+
+    var bullets = [];
+
+    setInterval(function(){
+        if (mouseDown == true) {
+            //code to be executed on mousedown
+            var bullet;
+            var direction_x;
+            var direction_y;
+            bullet = document.createElement('div');
+            bullet.className = "bullet";
+            bullet.id = "bullet" + b_counter1;
+            direction_x = character_left + character_width/2;
+            direction_y = character_top + 3/4 * character_height;
+            bullet.style.left = direction_x + "px";
+            bullet.style.top = direction_y + "px";
+
+            document.body.appendChild(bullet);
+
+            bullets.push(["bullet" + b_counter1, (character_left + character_width/2), (character_top + 3/4 * character_height), mousePos.x, mousePos.y]);
+            // [0] = id, [1] = start-x, [2] = start-y, [3] = direction-x, [4] = direction-y
+            b_counter1++;
+        }
+    }, 100);
+
+    function getSize(){
+        if(window.innerWidth !== undefined && window.innerHeight !== undefined) {
+            return [window.innerWidth, window.innerHeight]
+        } else {
+            return [document.documentElement.clientWidth, document.documentElement.clientHeight]
+        }
+    }
+
+    setInterval(function(){
+
+        var i = 0;
+        bullets.forEach(function(bullet){
+            var velocity = 10;
+            var rotation = Math.atan2(bullet[4]-bullet[2], bullet[3]-bullet[1]);
+            var bullet_x = Math.cos(rotation) * velocity;
+            var bullet_y = Math.sin(rotation) * velocity;
+            document.getElementById(bullet[0]).style.left = document.getElementById(bullet[0]).getBoundingClientRect().left + bullet_x + "px";
+            document.getElementById(bullet[0]).style.top = document.getElementById(bullet[0]).getBoundingClientRect().top + bullet_y + "px";
+            var width = getSize();
+            var height = width[1];
+            width = width[0];
+            if (document.getElementById(bullet[0]).getBoundingClientRect().left < 0 || document.getElementById(bullet[0]).getBoundingClientRect().top < 0 || document.getElementById(bullet[0]).getBoundingClientRect().left > width-4 || document.getElementById(bullet[0]).getBoundingClientRect().top > height-4) //-4 to avoid overflow
+            {
+                document.body.removeChild(document.getElementById(bullet[0]));
+                bullets.splice(i, 1);
+            }
+            i++;
+        })
+        if (bullets.length > 50) {
+            document.body.removeChild(document.getElementById(bullets[0][0]))
+            bullets.shift();
+        }
+
+    }, 10);
+
+    function handleMouseMove(e){
+        mousePos = e;
+    }
+
+    function handleMouseDown(){
+        mouseDown = true;
+    }
+
+    function handleMouseUp(){
+        mouseDown = false;
+    }
+
+
+
+
+
+</script>
+
+<head>
+    <meta charset="utf-8">
+    <title>Game Test</title>
+    <style>
+        body {height: 100%;}
+        .bullet {width: 4px;height: 4px;background-color: black;position: absolute;}
+    </style>
+</head>
+<body onresize="getSize()">
+<p id="text"></p>
+
+</body>
+</html>
+
