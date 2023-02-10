@@ -21,13 +21,10 @@
 
     manager.createElement("character", 1, 400, 400);
     let character = manager.characters[0]; // so character is drawn above walls (order of instantiation)
-    console.log(character);
     document.getElementById(character.id).style.left = 200 + "px";
     document.getElementById(character.id).style.right = 200 + "px";
 
     manager.createElement("enemy", 5);
-
-    // document.getElementById("text").innerHTML += this.horizontal + ' HIT ' + this.vertical;
 
     setInterval(function mainLogic()
     {
@@ -36,8 +33,7 @@
         character_height = document.getElementById(character.id).offsetHeight;
         character_top = document.getElementById(character.id).getBoundingClientRect().top;
         if (manager.enemies.length == 0) {
-            manager.createElement("enemy", enemies, 3);
-            console.log(manager.enemies);
+            manager.createElement("enemy", 3);
         }
         let passable = [true, true, true, true]; // [0] top, [1] bottom, [2] left, [3] right
         manager.walls.forEach(function(wall) {
@@ -52,17 +48,9 @@
         })
         character.move(passable[0], passable[1], passable[2], passable[3])
         manager.enemies.forEach(function(enemy) {
-            if(enemy !== undefined) {
-                try {
-
-                }
-                catch (e) {
-
-                }
-                var move = enemy.move(document.getElementById(enemy.id).getBoundingClientRect(), getSize());
-                document.getElementById(enemy.id).style.left = move[0];
-                document.getElementById(enemy.id).style.top = move[1];
-            }
+            var move = enemy.move(document.getElementById(enemy.id).getBoundingClientRect(), getSize());
+            document.getElementById(enemy.id).style.left = move[0];
+            document.getElementById(enemy.id).style.top = move[1];
         })
     }, 10);
 

@@ -62,7 +62,6 @@ export default class ElementManager {
 
     deleteEnemy(ids)
     {
-        console.log(this.enemies);
         let deleters = [];
         let array = this.enemies;
         ids.forEach(function(id) {
@@ -75,8 +74,9 @@ export default class ElementManager {
                 i++;
             })
         })
+        var self = this; // this only references one layer above where it is called and the following function is nested within another one
         deleters.forEach(function(deleter) {
-            this.enemies.splice(deleter, 1);
+            self.enemies.splice(deleter, 1);
         })
     }
 
